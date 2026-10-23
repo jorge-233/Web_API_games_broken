@@ -16,8 +16,10 @@ def create_game(game_data: GameCreate, session: Session):
 
     session.add(game)
 
-    # PISTA: recuerda el orden visto en clase para guardar un objeto
-    # y luego recargar los valores generados por la base de datos.
+    # CORREGIDO: faltaba session.commit(). Sin él, el objeto no es
+    # persistente y session.refresh() lanzaba InvalidRequestError (500).
+    session.commit()
+
     session.refresh(game)
 
     return game
@@ -29,8 +31,17 @@ def list_games(session: Session):
 
 
 def get_game(game_id: int, session: Session):
-    # PISTA: ¿qué debería devolver una API cuando el recurso solicitado no existe?
-    return session.get(Game, game_id)
+    game = session.get(Game, game_id)
+
+    # CORREGIDO: antes se devolvía session.get() directamente. Si el ID
+    # no existía devolvía None y la API fallaba. Ahora responde 404.
+    if not game:
+        raise HTTPException(
+            status_code=404,
+            detail="Game not found"
+        )
+
+    return game
 
 
 def delete_game(game_id: int, session: Session):
@@ -44,7 +55,8 @@ def delete_game(game_id: int, session: Session):
 
     session.delete(game)
 
-    # PISTA: eliminar un objeto de una sesión no necesariamente significa
-    # que la eliminación haya quedado guardada en SQLite.
+    # CORREGIDO: faltaba session.commit(). Sin él, el DELETE respondía
+    # "Game deleted" pero el registro seguía en SQLite.
+    session.commit()
 
     return {"message": "Game deleted"}

@@ -30,8 +30,9 @@ def create_game_endpoint(
 
 @router.get(
     "",
-    # PISTA: este endpoint devuelve varios registros. Observa la forma del JSON esperado.
-    response_model=GameResponse
+    # CORREGIDO: el endpoint devuelve varios registros, por eso el
+    # response_model debe ser una lista: list[GameResponse].
+    response_model=list[GameResponse]
 )
 def list_games_endpoint(
     session: Session = Depends(get_session)
